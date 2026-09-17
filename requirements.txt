@@ -1,0 +1,7 @@
+PyMuPDF
+langchain
+langchain-openai
+chromadb
+fastapi
+uvicorn
+python-dotenv
