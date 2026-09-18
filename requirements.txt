@@ -5,3 +5,6 @@ chromadb
 fastapi
 uvicorn
 python-dotenv
+pydantic
+httpx
+pytest
