@@ -1,0 +1,8 @@
+[
+    {
+        "page_number": 1,
+        "text": "Page 1 Header - Important Document\n\nThis is the first page of the document. The text is broken\nacross multiple lines in a way that simulates bad PDF\nextraction.\nThere are also multiple   spaces   in this sentence.\n\nPage 1 Footer - Confidential\nPage 2 Header - Important Document\n\nThis is the second page. It contains the references.\n\nReferences\n1. Smith, J. (2020). AI in Libraries.\n2. Doe, A. (2021). Document Parsing.\n\nPage 2 Footer - Confidential\n",
+        "doc_title": "sample_doc2.txt",
+        "source_path": "data\\sample_doc2.txt"
+    }
+]
