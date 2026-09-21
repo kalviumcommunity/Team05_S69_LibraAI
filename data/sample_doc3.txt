@@ -1,0 +1,10 @@
+Header: University Guidelines
+
+Welcome to the guidelines. This document will explain how to pro-
+ceed with the new system.
+It is very important to read everything.
+
+Bibliography
+Smith, J. A., "How to Read", 2019.
+
+Footer: Page 1

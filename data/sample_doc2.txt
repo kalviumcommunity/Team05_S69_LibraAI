@@ -1,0 +1,17 @@
+Page 1 Header - Important Document
+
+This is the first page of the document. The text is broken
+across multiple lines in a way that simulates bad PDF
+extraction.
+There are also multiple   spaces   in this sentence.
+
+Page 1 Footer - Confidential
+Page 2 Header - Important Document
+
+This is the second page. It contains the references.
+
+References
+1. Smith, J. (2020). AI in Libraries.
+2. Doe, A. (2021). Document Parsing.
+
+Page 2 Footer - Confidential
