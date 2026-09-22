@@ -8,3 +8,5 @@ python-dotenv
 pydantic
 httpx
 pytest
+streamlit
+requests
