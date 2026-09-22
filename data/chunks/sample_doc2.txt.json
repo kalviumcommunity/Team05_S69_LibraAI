@@ -1,0 +1,10 @@
+[
+    {
+        "chunk_id": "sample_doc2.txt.json_chunk_1",
+        "text": "This is the first page of the document. The text is broken\nacross multiple lines in a way that simulates bad PDF\nextraction.\nThere are also multiple spaces in this sentence.\n\nThis is the second page. It contains the references.\n\nReferences\n1. Smith, J. (2020). AI in Libraries.\n2. Doe, A. (2021). Document Parsing.",
+        "doc_title": "sample_doc2.txt",
+        "source_path": "data\\sample_doc2.txt",
+        "page_number": 1,
+        "is_reference_section": true
+    }
+]
