@@ -81,7 +81,7 @@ if __name__ == "__main__":
     
     # 1. Index a small sample set
     print("Indexing sample documents...")
-    vectorstore = index_chunks(chunks_dir, persist_dir, sample_only=True)
+    vectorstore = index_chunks(chunks_dir, persist_dir, sample_only=False)
     
     # 2. Verify with a test query
     verify_query(vectorstore, "What is Artificial Intelligence in Libraries?")
