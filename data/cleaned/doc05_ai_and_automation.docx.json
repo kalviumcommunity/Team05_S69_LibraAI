@@ -1,0 +1,51 @@
+[
+    {
+        "page_number": 1,
+        "text": "AI & Automation / Technology Support for Localization Operations\n\nSUMMARY\n\nWe are looking for enthusiastic and curious AI & Automation Interns who want to build practical AI-powered applications for the localization industry. The intern will work on real-world applications that support localization services such as multimedia localization, content processing, translation workflows, quality checks, and other operational processes.\n\nTECHNICAL SKILLS\n\nPython\n\nDebugging and Error handling\n\nUnderstanding of how web applications and APIs work\n\nJSON and structured data\n\nAbility to read, understand and work with existing code\n\nBasic knowledge of Git/version control\n\nGood problem-solving ability\n\nREST APIs\n\nWebhooks\n\nSQL/databases\n\nHTML/CSS/JavaScript",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 2,
+        "text": "Node.js\n\nCloud platforms\n\nRAG\n\nEmbeddings\n\nVector databases\n\nAI agent frameworks\n\nWorkflow automation platforms\n\nAI coding assistants\n\nApplication deployment\n\nLarge Language Models (LLMs)\n\nGenerative AI\n\nAI model APIs\n\nPrompt engineering\n\nStructured outputs\n\nAI agents and AI-assisted workflows",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 3,
+        "text": "Retrieval-Augmented Generation (RAG)\n\nEmbeddings and semantic search\n\nAI-based document and content processing\n\nAI-powered classification and extraction\n\nAI-assisted quality checking\n\nWorkflow automation\n\nAPI-based integrations\n\nWHAT YOU WILL WORK ON\n\nAI-assisted localization and GTM applications;\n\nMultimedia - audio and video content processing workflows;\n\nTranscription and subtitle-related automation;\n\nAI-assisted translation and content transformation workflows;\n\nAutomated file and content processing;\n\nContent validation and quality-check applications;\n\nAI-assisted review and analysis tools;",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 4,
+        "text": "Workflow automation between different systems;\n\nInternal dashboards and operational tools;\n\nAutomated document and data processing;\n\nApplications that connect AI models with existing business systems; ● Small AI-powered tools designed to eliminate repetitive manual work.\n\nKEY RESPONSIBILITIES\n\nUse modern AI development tools to build functional applications and prototypes;\n\nUse prompts effectively to generate application components, code, workflows, and automation logic;\n\nExperiment with different AI models and approaches;\n\nConvert business requirements into practical AI-powered workflows;\n\nBuild proof-of-concepts and MVPs;\n\nImprove existing applications based on user feedback;\n\nIdentify repetitive manual processes that can be automated;\n\nBuild workflows using low-code/no-code automation platforms and AI-enabled tools;\n\nConnect applications/services using APIs and webhooks;\n\nAutomate data movement, file processing, notifications, validations;",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 5,
+        "text": "Test and improve automation workflows;\n\nUnderstand AI-generated code before using it;\n\nModify or extend AI-generated code;\n\nFix bugs unresolved through prompts/configuration;\n\nAdd features;\n\nDebug application logic, API integrations, data-processing workflows, and automation failures;\n\nWrite simple scripts/utilities;\n\nMaintain and improve existing AI-assisted code; ● Ensure AI generated code is tested.\n\nTESTING & QUALITY\n\nTest applications before handing them over to users;\n\nCheck AI-generated outputs for accuracy and consistency;\n\nIdentify incorrect or unexpected AI responses;\n\nTest different prompts and input scenarios;\n\nIdentify edge cases and failure scenarios;\n\nValidate API integrations and automation workflows;",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 6,
+        "text": "Document full application including bugs and proposed solutions; ● Continuously improve reliability of AI-powered applications.\n\nSECURITY & RESPONSIBLE AI\n\nNever expose API keys or credentials in application code;\n\nFollow basic data-security practices;\n\nBe careful with confidential business or customer data;\n\nValidate AI-generated outputs before business use;\n\nAvoid unnecessary sharing of confidential information with public AI tools; ● Follow defined access and data-handling guidelines.\n\nEDUCATION & ELIGIBILITY\n\nPreferred Educational Background:\n\nStudents or recent graduates from Computer Science, Information Technology, Artificial Intelligence, Data Science, Software Engineering, Electronics / related technical disciplines.\n\nCandidates from other technical backgrounds may also be considered if they can demonstrate strong programming and problem-solving ability.\n\nExperience:\n\nFreshers and final-year students are welcome;\n\nInternship, academic project, hackathon, GitHub project, or personal project experience will be considered an advantage;\n\nProfessional experience is not required.",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    },
+    {
+        "page_number": 7,
+        "text": "WHAT WE ARE LOOKING FOR\n\nGenuinely curious about AI and automation;\n\nEnjoy building things;\n\nCan experiment with new AI tools independently;\n\nWilling to learn through trial and error;\n\nCan understand a business problem and think of a technical solution;\n\nComfortable using AI to accelerate development;\n\nCan recognize when AI-generated output is incorrect;\n\nWilling to write and debug code when required;\n\nCan work independently on small projects;\n\nComfortable asking questions when requirements are unclear;\n\nStrong logical and analytical mindset;\n\nExcited about rapidly changing AI technology landscape.\n\nMost Important Attribute: We are looking for a builder, not someone who simply knows AI terminology.",
+        "doc_title": "doc05_ai_and_automation.docx",
+        "source_path": "data\\doc05_ai_and_automation.docx",
+        "is_reference_section": false
+    }
+]

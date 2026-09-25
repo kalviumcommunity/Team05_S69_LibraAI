@@ -10,3 +10,4 @@ httpx
 pytest
 streamlit
 requests
+langchain-text-splitters

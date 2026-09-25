@@ -2,11 +2,28 @@ import os
 import json
 import re
 
+def normalize_encoding(text):
+    # Normalize ligatures and invisible characters from PDF extraction
+    ligatures = {
+        '\ufb00': 'ff',
+        '\ufb01': 'fi',
+        '\ufb02': 'fl',
+        '\ufb03': 'ffi',
+        '\ufb04': 'ffl',
+        '\u200b': '',  # zero-width space
+        '\u200c': '',  # zero-width non-joiner
+        '\u00a0': ' ', # non-breaking space
+    }
+    for char, rep in ligatures.items():
+        text = text.replace(char, rep)
+    return text
+
 def normalize_whitespace(text):
+    # Normalize encoding & ligatures first
+    text = normalize_encoding(text)
     # Fix hyphenated line breaks
     text = re.sub(r'(\w+)-\n(\w+)', r'\1\2', text)
-    # Replace multiple newlines with a single space if they are mid-sentence (simple heuristic)
-    # For now, just replace multiple spaces with single space
+    # Replace multiple spaces with single space
     text = re.sub(r'[ \t]+', ' ', text)
     # Remove excessive newlines
     text = re.sub(r'\n{3,}', '\n\n', text)

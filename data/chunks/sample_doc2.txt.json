@@ -1,10 +1,16 @@
 [
     {
-        "chunk_id": "sample_doc2.txt.json_chunk_1",
+        "chunk_id": "sample_doc2_p1_c001",
         "text": "This is the first page of the document. The text is broken\nacross multiple lines in a way that simulates bad PDF\nextraction.\nThere are also multiple spaces in this sentence.\n\nThis is the second page. It contains the references.\n\nReferences\n1. Smith, J. (2020). AI in Libraries.\n2. Doe, A. (2021). Document Parsing.",
-        "doc_title": "sample_doc2.txt",
-        "source_path": "data\\sample_doc2.txt",
+        "doc_title": "University Library Guidelines",
+        "doc_type": "notes",
+        "author": "Library Administration",
+        "course_code": "LIS-101",
+        "section": "1. Smith, J. (2020). AI in Libraries.",
         "page_number": 1,
+        "source_path": "data\\sample_doc2.txt",
+        "is_reference": true,
+        "token_count": 79,
         "is_reference_section": true
     }
 ]
