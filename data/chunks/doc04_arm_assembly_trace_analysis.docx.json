@@ -1,0 +1,72 @@
+[
+    {
+        "chunk_id": "doc04_arm_trace_p1_c001",
+        "text": "CPUlator ARM Assembly ProgramTrace and Analysis\n\nSubmission Task\n\nProgram\n\nglobal _start_start: mov r1, #18 @ r1 = ? mov r2, #6 @ r2 = ? add r3, r1, r2 @ r3 = ? sub r4, r1, r2 @ r4 = ? lsl r5, r2, #1 @ r5 = ? mul r6, r3, r2 @ r6 = ? add r7, r4, r5 @ r7 = ? b . @ halt\n\nQuestion 1 — Trace Table\n\nThe following table shows the register changed after each of the seven required instructions, along with its hexadecimal and decimal value.\n\nStep | Instruction | Register Changed | Hex Value | Decimal Value\n1 | mov r1, #18 | r1 | 0x00000012 | 18\n2 | mov r2, #6 | r2 | 0x00000006 | 6\n3 | add r3, r1, r2 | r3 | 0x00000018 | 24\n4 | sub r4, r1, r2 | r4 | 0x0000000C | 12\n5 | lsl r5, r2, #1 | r5 | 0x0000000C | 12\n6 | mul r6, r3, r2 | r6 | 0x00000090 | 144\n7 | add r7, r4, r5 | r7 | 0x00000018 | 24\n\nStep-by-Step Calculations\n\nStep 1\n\nr1 = 1818 = 0x12\n\nStep 2\n\nr2 = 66 = 0x06\n\nStep 3\n\nr3 = r1 + r2 = 18 + 6 = 24 = 0x18",
+        "doc_title": "CPUlator ARM Assembly Program Trace and Analysis Report",
+        "doc_type": "course_material",
+        "author": "Computer Systems Faculty",
+        "course_code": "COA-2026",
+        "section": "Step 1\n\nr1",
+        "page_number": 1,
+        "source_path": "data\\doc04_arm_assembly_trace_analysis.docx",
+        "is_reference": false,
+        "token_count": 396,
+        "is_reference_section": false
+    },
+    {
+        "chunk_id": "doc04_arm_trace_p1_c002",
+        "text": "Step 1\n\nr1 = 1818 = 0x12\n\nStep 2\n\nr2 = 66 = 0x06\n\nStep 3\n\nr3 = r1 + r2 = 18 + 6 = 24 = 0x18\n\nStep 4",
+        "doc_title": "CPUlator ARM Assembly Program Trace and Analysis Report",
+        "doc_type": "course_material",
+        "author": "Computer Systems Faculty",
+        "course_code": "COA-2026",
+        "section": "Step 1\n\nr1",
+        "page_number": 1,
+        "source_path": "data\\doc04_arm_assembly_trace_analysis.docx",
+        "is_reference": false,
+        "token_count": 61,
+        "is_reference_section": false
+    },
+    {
+        "chunk_id": "doc04_arm_trace_p2_c003",
+        "text": "r4 = r1 - r2 = 18 - 6 = 12 = 0x0C\n\nStep 5\n\nr5 = r2 << 1 = 6 << 1 = 12 = 0x0CA left shift by 1 is equivalent to multiplying by 2: 6 × 2 = 12.\n\nStep 6\n\nr6 = r3 × r2 = 24 × 6 = 144 = 0x90\n\nStep 7\n\nr7 = r4 + r5 = 12 + 12 = 24 = 0x18\n\nFinal Register State\n\nRegister | Hex Value | Decimal Value\nr1 | 0x00000012 | 18\nr2 | 0x00000006 | 6\nr3 | 0x00000018 | 24\nr4 | 0x0000000C | 12\nr5 | 0x0000000C | 12\nr6 | 0x00000090 | 144\nr7 | 0x00000018 | 24\n\nCPUlator Final Register Screenshot\n\nInsert the CPUlator Registers panel screenshot here, showing the final register state after all seven required instructions have executed.\n\n[ INSERT CPUlator SCREENSHOT HERE ]\n\nQuestion 2 — Explain Step 6\n\nThe instruction in Step 6 is:\n\nmul r6, r3, r2",
+        "doc_title": "CPUlator ARM Assembly Program Trace and Analysis Report",
+        "doc_type": "course_material",
+        "author": "Computer Systems Faculty",
+        "course_code": "COA-2026",
+        "section": "Step 5\n\nr5",
+        "page_number": 2,
+        "source_path": "data\\doc04_arm_assembly_trace_analysis.docx",
+        "is_reference": false,
+        "token_count": 295,
+        "is_reference_section": false
+    },
+    {
+        "chunk_id": "doc04_arm_trace_p3_c004",
+        "text": "At this point, r3 contains 24. The value of r3 was created in Step 3 by the instruction add r3, r1, r2.\n\nBefore Step 3:\n\nr1 = 18r2 = 6\n\nTherefore:\n\nr3 = r1 + r2 = 18 + 6 = 24\n\nWhen Step 6 executes, the processor multiplies r3 by r2:\n\nr6 = r3 × r2 = 24 × 6 = 144\n\nTherefore, r3 holds 24 at Step 6 because the instruction add r3, r1, r2 in Step 3 calculated it by adding 18 and 6. This value is then used as a source operand by the multiplication instruction.\n\nQuestion 3 — Instruction Order\n\nIf the order of instructions 6 and 7 is swapped, the final value of r7 would not change.\n\nOriginal order:\n\nmul r6, r3, r2add r7, r4, r5\n\nSwapped order:\n\nadd r7, r4, r5mul r6, r3, r2\n\nBefore these instructions execute, the relevant register values are:",
+        "doc_title": "CPUlator ARM Assembly Program Trace and Analysis Report",
+        "doc_type": "course_material",
+        "author": "Computer Systems Faculty",
+        "course_code": "COA-2026",
+        "section": "Question 3 — Instruction Order\n\nIf the order of instructions 6 and 7 is swapped",
+        "page_number": 3,
+        "source_path": "data\\doc04_arm_assembly_trace_analysis.docx",
+        "is_reference": false,
+        "token_count": 241,
+        "is_reference_section": false
+    },
+    {
+        "chunk_id": "doc04_arm_trace_p4_c005",
+        "text": "r2 = 6r3 = 24r4 = 12r5 = 12\n\nThe add instruction calculates:\n\nr7 = r4 + r5 = 12 + 12 = 24\n\nThe mul instruction calculates:\n\nr6 = r3 × r2 = 24 × 6 = 144\n\nThe multiplication only changes r6. It does not change r4, r5, or r7. Therefore, r7 remains 24 whether the multiplication is executed before or after the addition.\n\nConclusion\n\nThe final value of r7 would not change because instructions 6 and 7 are independent of each other. Instruction 6 modifies r6, while instruction 7 uses r4 and r5 to calculate r7. Neither instruction modifies a register required by the other.\n\nFinal Answers Summary\n\nQuestion | Answer | Key Value\nQuestion 1 | Final register state after 7 instructions | r1=18, r2=6, r3=24, r4=12, r5=12, r6=144, r7=24\nQuestion 2 | r3 was created by ADD in Step 3 and is used by MUL in Step 6. | r3 = 24\nQuestion 3 | Swapping instructions 6 and 7 does not affect r7. | r7 = 24",
+        "doc_title": "CPUlator ARM Assembly Program Trace and Analysis Report",
+        "doc_type": "course_material",
+        "author": "Computer Systems Faculty",
+        "course_code": "COA-2026",
+        "section": "Question 1",
+        "page_number": 4,
+        "source_path": "data\\doc04_arm_assembly_trace_analysis.docx",
+        "is_reference": false,
+        "token_count": 276,
+        "is_reference_section": false
+    }
+]

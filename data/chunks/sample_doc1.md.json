@@ -1,10 +1,16 @@
 [
     {
-        "chunk_id": "sample_doc1.md.json_chunk_1",
+        "chunk_id": "sample_doc1_ai_libraries_p1_c001",
         "text": "# Introduction to AI in Libraries\n\nLibraries have evolved significantly over the years. With the introduction of Artificial Intelligence, research processes can be augmented to improve efficiency.",
-        "doc_title": "sample_doc1.md",
-        "source_path": "data\\sample_doc1.md",
+        "doc_title": "Introduction to AI in Libraries",
+        "doc_type": "notes",
+        "author": "Library Information Systems",
+        "course_code": "LIS-101",
+        "section": "Introduction to AI in Libraries",
         "page_number": 1,
+        "source_path": "data\\sample_doc1.md",
+        "is_reference": false,
+        "token_count": 32,
         "is_reference_section": false
     }
 ]

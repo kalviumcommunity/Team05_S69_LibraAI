@@ -1,10 +1,16 @@
 [
     {
-        "chunk_id": "sample_doc3.txt.json_chunk_1",
+        "chunk_id": "sample_doc3_p1_c001",
         "text": "Welcome to the guidelines. This document will explain how to proceed with the new system.\nIt is very important to read everything.\n\nBibliography\nSmith, J. A., \"How to Read\", 2019.",
-        "doc_title": "sample_doc3.txt",
-        "source_path": "data\\sample_doc3.txt",
+        "doc_title": "Research Ethics and Academic Integrity",
+        "doc_type": "notes",
+        "author": "Academic Ethics Committee",
+        "course_code": "ETH-100",
+        "section": "General",
         "page_number": 1,
+        "source_path": "data\\sample_doc3.txt",
+        "is_reference": true,
+        "token_count": 44,
         "is_reference_section": true
     }
 ]

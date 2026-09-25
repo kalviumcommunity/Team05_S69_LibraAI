@@ -1,7 +1,7 @@
 """
 LibraAI - FastAPI Backend Application
-Day 2 Scaffold: API Contract & Stub Query Endpoint
-Reference: PRD Appendix B, §8.2, §8.3, FR-19, NFR-03
+Day 6 Upgrade: Real VectorRetriever wired to /query endpoint
+Reference: PRD Appendix B, §8.2, §8.3, §8.5, FR-04, FR-05, FR-07, FR-10, FR-19, NFR-03
 """
 
 import sys
@@ -13,11 +13,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from config.schema import QueryRequest, QueryResponse, Citation
+from retrieval.retriever import VectorRetriever
 
 app = FastAPI(
     title="LibraAI API",
     description="University Library Research Assistant — RAG Backend API",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 # Enable CORS for local Streamlit frontend (default port 8501) or web clients
@@ -29,6 +30,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Singleton retriever — loaded once at startup to avoid per-request model loading
+_retriever: VectorRetriever | None = None
+
+
+def get_retriever() -> VectorRetriever:
+    """Lazily initialize and cache the VectorRetriever singleton."""
+    global _retriever
+    if _retriever is None:
+        _retriever = VectorRetriever()
+    return _retriever
+
 
 @app.get("/health", tags=["Health"])
 async def health_check():
@@ -36,49 +48,33 @@ async def health_check():
     return {
         "status": "ok",
         "service": "LibraAI Backend",
-        "version": "1.0.0",
-        "stage": "Day 2 - Mock Contract",
+        "version": "2.0.0",
+        "stage": "Day 6 - Real Retrieval",
     }
 
 
 @app.post("/query", response_model=QueryResponse, tags=["Retrieval & Generation"])
 async def query_library(request: QueryRequest) -> QueryResponse:
     """
-    Primary RAG query endpoint.
-    Day 2 Stub Implementation: returns a verified mock response adhering to
-    the locked QueryResponse schema contract (FR-19, Appendix B).
+    Primary RAG query endpoint — Day 6 real-retrieval implementation.
+
+    Workflow:
+    1. Embed user query using DefaultEmbeddingFunction (all-MiniLM-L6-v2).
+    2. Query ChromaDB collection for top-k semantically similar chunks.
+    3. Evaluate cosine similarity against calibrated threshold (0.38).
+    4. If below threshold → return refusal response with 0 citations (FR-05, FR-10).
+    5. If above threshold → return answer preview and deduplicated citations (FR-07, NFR-03).
     """
-    query_lower = request.query.lower()
-
-    # Stub simulation: Out-of-corpus queries trigger refusal path (FR-05, FR-10)
-    out_of_corpus_triggers = ["shor", "bastille", "crispr", "quantum", "dna", "french revolution", "unknown"]
-    if any(trigger in query_lower for trigger in out_of_corpus_triggers):
-        return QueryResponse(
-            answer="I don't know / not covered in the available materials.",
-            citations=[],
-            refused=True,
-            confidence_score=0.25,
-        )
-
-    # In-corpus mock response grounded in Day 1 inspection of DOC-01
-    return QueryResponse(
-        answer=(
-            "According to the study on password reuse, 34 out of 50 participants had at least one pair "
-            "of reused passwords, and virtually all participants who reused passwords verbatim stated "
-            "they did so for memorability reasons."
-        ),
-        citations=[
-            Citation(
-                doc_title="How Users Choose and Reuse Passwords",
-                section="V. Password Extraction and Reuse",
-                page_number=14,
-                source_path="data/doc01_password_reuse_research_paper.pdf",
-                chunk_id="doc01_password_reuse_p14_c002",
-            )
-        ],
-        refused=False,
-        confidence_score=0.92,
-    )
+    try:
+        retriever = get_retriever()
+        response = retriever.query(request)
+        return response
+    except Exception as exc:
+        # Fail-safe: surface internal error without leaking implementation details
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Retrieval service temporarily unavailable. Please try again.",
+        ) from exc
 
 
 if __name__ == "__main__":
