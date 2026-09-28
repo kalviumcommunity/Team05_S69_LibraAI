@@ -11,3 +11,4 @@ pytest
 streamlit
 requests
 langchain-text-splitters
+google-genai
