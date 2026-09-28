@@ -5,3 +5,9 @@ chromadb
 fastapi
 uvicorn
 python-dotenv
+pydantic
+httpx
+pytest
+streamlit
+requests
+langchain-text-splitters
