@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from backend.main import app
-from config.schema import ChunkMetadata, QueryRequest, QueryResponse
+from config.schema import ChunkMetadata, QueryResponse
 
 client = TestClient(app)
 
@@ -38,7 +38,9 @@ def test_metadata_schema_chroma_roundtrip():
 
     # Chroma only accepts primitive types
     for key, val in chroma_dict.items():
-        assert isinstance(val, (int, float, str, bool)), f"Non-primitive field {key}: {type(val)}"
+        assert isinstance(val, (int, float, str, bool)), (
+            f"Non-primitive field {key}: {type(val)}"
+        )
 
     reconstructed = ChunkMetadata.from_chroma_metadata(chroma_dict)
     assert reconstructed.chunk_id == meta.chunk_id
@@ -51,33 +53,57 @@ def test_metadata_schema_chroma_roundtrip():
 def test_health_check_endpoint():
     """Verify GET /health returns 200 OK and valid status."""
     response = client.get("/health")
+
     assert response.status_code == 200
+
     data = response.json()
     assert data["status"] == "ok"
     assert "version" in data
 
 
-def test_query_in_corpus_contract():
-    """Verify POST /query returns a properly structured QueryResponse with citation for in-corpus question."""
+def test_query_in_corpus_contract(monkeypatch):
+    """
+    Verify POST /query returns a properly structured QueryResponse
+    with citations for an in-corpus question.
+
+    Gemini is mocked so the test does not depend on external API availability.
+    The real retriever and citation extraction are still used.
+    """
+
+    class FakeGenerator:
+        def generate_answer(self, question, context):
+            return (
+                "The document contains information about "
+                "participants reusing passwords verbatim."
+            )
+
+    monkeypatch.setattr(
+        "backend.main.get_generator",
+        lambda: FakeGenerator(),
+    )
+
     payload = {
         "query": "What percentage of participants reused passwords verbatim?",
         "top_k": 4,
     }
-    response = client.post("/query", json=payload)
-    assert response.status_code == 200
-    data = response.json()
 
-    # Validate against QueryResponse model
+    response = client.post("/query", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
     parsed = QueryResponse(**data)
+
     assert parsed.refused is False
     assert len(parsed.answer) > 20
     assert len(parsed.citations) >= 1
 
     citation = parsed.citations[0]
     assert citation.doc_title == "How Users Choose and Reuse Passwords"
-    assert citation.page_number >= 1  # real retriever returns actual page
-    assert len(citation.section) > 0   # section populated from real chunk metadata
+    assert citation.page_number >= 1
+    assert len(citation.section) > 0
     assert citation.source_path.endswith(".pdf")
+    assert parsed.confidence_score is not None
 
 
 def test_query_refusal_contract():
@@ -86,13 +112,19 @@ def test_query_refusal_contract():
         "query": "How does Shor's quantum factoring algorithm work?",
         "top_k": 4,
     }
-    response = client.post("/query", json=payload)
-    assert response.status_code == 200
-    data = response.json()
 
+    response = client.post("/query", json=payload)
+
+    assert response.status_code == 200
+
+    data = response.json()
     parsed = QueryResponse(**data)
+
     assert parsed.refused is True
-    assert "I don't know" in parsed.answer or "not covered" in parsed.answer
+    assert (
+        "I don't know" in parsed.answer
+        or "not covered" in parsed.answer
+    )
     assert len(parsed.citations) == 0
 
 
@@ -101,20 +133,28 @@ def test_query_validation_error():
     payload = {
         "query": "",  # min_length is 2
     }
+
     response = client.post("/query", json=payload)
+
     assert response.status_code == 422
 
 
 if __name__ == "__main__":
     print("Running tests manually...")
+
     test_metadata_schema_chroma_roundtrip()
-    print("✅ test_metadata_schema_chroma_roundtrip passed")
+    print("test_metadata_schema_chroma_roundtrip passed")
+
     test_health_check_endpoint()
-    print("✅ test_health_check_endpoint passed")
-    test_query_in_corpus_contract()
-    print("✅ test_query_in_corpus_contract passed")
+    print("test_health_check_endpoint passed")
+
+    # Run the in-corpus contract test through pytest to provide monkeypatch.
+    print("Run this file using: pytest tests/test_api.py -v")
+
     test_query_refusal_contract()
-    print("✅ test_query_refusal_contract passed")
+    print("test_query_refusal_contract passed")
+
     test_query_validation_error()
-    print("✅ test_query_validation_error passed")
-    print("\nALL TESTS PASSED SUCCESSFULLY! 🚀")
+    print("test_query_validation_error passed")
+
+    print("\nManual tests completed.")

@@ -1,19 +1,25 @@
 """
 LibraAI - FastAPI Backend Application
-Day 6 Upgrade: Real VectorRetriever wired to /query endpoint
-Reference: PRD Appendix B, §8.2, §8.3, §8.5, FR-04, FR-05, FR-07, FR-10, FR-19, NFR-03
+Day 7: Retrieval-Augmented Generation with Gemini
 """
 
-import sys
+import logging
 import os
+import sys
 
-# Add repository root to python sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+)
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from config.schema import QueryRequest, QueryResponse, Citation
+
+from config.schema import QueryRequest, QueryResponse
+from generation.llm import GeminiGenerator, REFUSAL_MESSAGE
 from retrieval.retriever import VectorRetriever
+
+logger = logging.getLogger("libraai.backend")
 
 app = FastAPI(
     title="LibraAI API",
@@ -21,7 +27,6 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# Enable CORS for local Streamlit frontend (default port 8501) or web clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,21 +35,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Singleton retriever — loaded once at startup to avoid per-request model loading
-_retriever: VectorRetriever | None = None
+_retriever = None
+_generator = None
 
 
 def get_retriever() -> VectorRetriever:
-    """Lazily initialize and cache the VectorRetriever singleton."""
     global _retriever
+
     if _retriever is None:
         _retriever = VectorRetriever()
+
     return _retriever
+
+
+def get_generator() -> GeminiGenerator:
+    global _generator
+
+    if _generator is None:
+        _generator = GeminiGenerator()
+
+    return _generator
 
 
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Liveness & readiness probe."""
     return {
         "status": "ok",
         "service": "LibraAI Backend",
@@ -53,30 +67,98 @@ async def health_check():
     }
 
 
-@app.post("/query", response_model=QueryResponse, tags=["Retrieval & Generation"])
+@app.post(
+    "/query",
+    response_model=QueryResponse,
+    tags=["Retrieval & Generation"],
+)
 async def query_library(request: QueryRequest) -> QueryResponse:
-    """
-    Primary RAG query endpoint — Day 6 real-retrieval implementation.
-
-    Workflow:
-    1. Embed user query using DefaultEmbeddingFunction (all-MiniLM-L6-v2).
-    2. Query ChromaDB collection for top-k semantically similar chunks.
-    3. Evaluate cosine similarity against calibrated threshold (0.38).
-    4. If below threshold → return refusal response with 0 citations (FR-05, FR-10).
-    5. If above threshold → return answer preview and deduplicated citations (FR-07, NFR-03).
-    """
     try:
         retriever = get_retriever()
-        response = retriever.query(request)
-        return response
+
+        retrieved = retriever.retrieve_with_text(
+            query=request.query,
+            top_k=request.top_k,
+            course_code=request.course_code,
+            doc_type=request.doc_type,
+        )
+
+        metadata_scores = [
+            (metadata, score)
+            for _, metadata, score in retrieved
+        ]
+
+        is_relevant, confidence = retriever.evaluate_relevance(
+            metadata_scores
+        )
+
+        if not is_relevant:
+            logger.info(
+                "Query refused (confidence %.3f): %s",
+                confidence,
+                request.query[:50],
+            )
+
+            return QueryResponse(
+                answer=REFUSAL_MESSAGE,
+                citations=[],
+                refused=True,
+                confidence_score=round(confidence, 4),
+            )
+
+        context = "\n\n".join(
+            (
+                f"[Source {index}]\n"
+                f"Document: {metadata.doc_title}\n"
+                f"Section: {metadata.section}\n"
+                f"Page: {metadata.page_number}\n"
+                f"Content:\n{chunk_text}"
+            )
+            for index, (chunk_text, metadata, _) in enumerate(
+                retrieved,
+                start=1,
+            )
+        )
+
+        generator = get_generator()
+
+        answer = generator.generate_answer(
+            question=request.query,
+            context=context,
+        )
+
+        if answer.strip().casefold() == REFUSAL_MESSAGE.casefold():
+            return QueryResponse(
+                answer=REFUSAL_MESSAGE,
+                citations=[],
+                refused=True,
+                confidence_score=round(confidence, 4),
+            )
+
+        citations = retriever.get_citations(metadata_scores)
+
+        return QueryResponse(
+            answer=answer,
+            citations=citations,
+            refused=False,
+            confidence_score=round(confidence, 4),
+        )
+
     except Exception as exc:
-        # Fail-safe: surface internal error without leaking implementation details
+        logger.exception("Error processing library query")
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Retrieval service temporarily unavailable. Please try again.",
+            detail="The query could not be processed. Please try again.",
         ) from exc
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+
+    uvicorn.run(
+        "backend.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+    )
