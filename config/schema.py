@@ -1,3 +1,4 @@
+
 """
 LibraAI - Canonical Metadata Schema & API Data Contracts
 Reference: PRD Appendix B, §6.3, §8.2, FR-19
@@ -47,7 +48,7 @@ class ChunkMetadata(BaseModel):
     token_count: int = Field(default=0, description="Estimated token count of the chunk")
 
     def to_chroma_metadata(self) -> Dict[str, Any]:
-        """Convert to ChromaDB-safe dictionary (Chroma requires primitive types int, float, str, bool)."""
+        """Convert to ChromaDB-safe dictionary."""
         return {
             "chunk_id": self.chunk_id,
             "doc_title": self.doc_title,
@@ -82,13 +83,17 @@ class ChunkMetadata(BaseModel):
 class Citation(BaseModel):
     """
     Source citation attached to generated answers.
-    Constructed exclusively from stored chunk metadata (NFR-03).
+    Constructed from stored chunk metadata and retrieved chunk text.
     """
     doc_title: str = Field(..., description="Document title")
     section: str = Field(default="General", description="Section or subsection name")
     page_number: int = Field(..., description="1-indexed page number")
     source_path: str = Field(..., description="Relative source path")
     chunk_id: Optional[str] = Field(default=None, description="Identifier of the supporting chunk")
+    chunk_text: Optional[str] = Field(
+        default=None,
+        description="Retrieved source text for expandable source display",
+    )
 
 
 class QueryRequest(BaseModel):
@@ -102,6 +107,11 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     """Output payload from POST /query endpoint."""
     answer: str = Field(..., description="Concise answer grounded strictly in retrieved chunks, or refusal text")
-    citations: List[Citation] = Field(default_factory=list, description="Citations from stored metadata only")
+    citations: List[Citation] = Field(default_factory=list, description="Citations from retrieved source chunks")
     refused: bool = Field(default=False, description="True if query fell below relevance threshold and was refused")
     confidence_score: Optional[float] = Field(default=None, description="Top retrieval similarity score")
+    source_document_count: int = Field(
+        default=0,
+        ge=0,
+        description="Number of distinct source documents supporting the answer",
+    )

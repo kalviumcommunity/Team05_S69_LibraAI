@@ -432,4 +432,4 @@ def test_api_health_version():
 
     assert response.status_code == 200
     assert response.json()["version"] == "2.0.0"
-    assert response.json()["stage"] == "Day 6 - Real Retrieval"
+    assert response.json()["stage"] == "Day 8 - RAG Integration"
