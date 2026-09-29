@@ -2,6 +2,13 @@ import os
 import json
 import re
 
+
+def normalize_whitespace(text):
+    # Fix hyphenated line breaks
+    text = re.sub(r'(\w+)-\n(\w+)', r'\1\2', text)
+    # Replace multiple newlines with a single space if they are mid-sentence (simple heuristic)
+    # For now, just replace multiple spaces with single space
+
 def normalize_encoding(text):
     # Normalize ligatures and invisible characters from PDF extraction
     ligatures = {
@@ -24,6 +31,7 @@ def normalize_whitespace(text):
     # Fix hyphenated line breaks
     text = re.sub(r'(\w+)-\n(\w+)', r'\1\2', text)
     # Replace multiple spaces with single space
+ main
     text = re.sub(r'[ \t]+', ' ', text)
     # Remove excessive newlines
     text = re.sub(r'\n{3,}', '\n\n', text)

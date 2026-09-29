@@ -9,11 +9,10 @@ import logging
 import os
 import re
 import sys
+import os
 
-sys.path.insert(
-    0,
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
-)
+# Add repository root to python sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,7 +30,7 @@ logger = logging.getLogger("libraai.backend")
 app = FastAPI(
     title="LibraAI API",
     description="University Library Research Assistant — RAG Backend API",
-    version="2.0.0",
+    version="3.0.0",
 )
 
 
@@ -59,7 +58,6 @@ def get_retriever() -> VectorRetriever:
 
 def get_generator() -> NVIDIAGenerator:
     global _generator
-
     if _generator is None:
         _generator = NVIDIAGenerator()
 
@@ -129,6 +127,7 @@ def count_source_documents(citations: list[Citation]) -> int:
 
 @app.get("/health", tags=["Health"])
 async def health_check():
+    """Liveness & readiness probe."""
     return {
         "status": "ok",
         "service": "LibraAI Backend",
@@ -137,12 +136,17 @@ async def health_check():
     }
 
 
-@app.post(
-    "/query",
-    response_model=QueryResponse,
-    tags=["Retrieval & Generation"],
-)
+@app.post("/query", response_model=QueryResponse, tags=["Retrieval & Generation"])
 async def query_library(request: QueryRequest) -> QueryResponse:
+    """
+    Primary RAG query endpoint — Day 8 grounded-generation implementation.
+
+    Workflow:
+    1. Embed user query and retrieve top-k semantically similar chunks.
+    2. Evaluate cosine similarity against calibrated threshold (0.38).
+    3. If below threshold → return refusal response with 0 citations (FR-05, FR-10).
+    4. If above threshold → generate grounded LLM answer and return with citations.
+    """
     try:
         # 1. Split the question into searchable topics.
         topics = split_query_topics(request.query)
@@ -294,8 +298,7 @@ async def query_library(request: QueryRequest) -> QueryResponse:
 
     # Unexpected application errors
     except Exception as exc:
-        logger.exception("Error processing library query")
-
+        # Fail-safe: surface internal error without leaking implementation details
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=(
@@ -307,6 +310,7 @@ async def query_library(request: QueryRequest) -> QueryResponse:
 
 if __name__ == "__main__":
     import uvicorn
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
 
     uvicorn.run(
         "backend.main:app",
