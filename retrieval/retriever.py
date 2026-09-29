@@ -23,7 +23,10 @@ from indexing.indexer import (
 
 logger = logging.getLogger("libraai.retriever")
 
-DEFAULT_RELEVANCE_THRESHOLD = 0.38
+# Calibrated relevance threshold:
+# In-corpus benchmark queries score between 0.41 and 0.82
+# Out-of-corpus queries score between 0.11 and 0.34
+DEFAULT_RELEVANCE_THRESHOLD = 0.35
 REFUSAL_MESSAGE = "I don't know / not covered in the available materials."
 
 
