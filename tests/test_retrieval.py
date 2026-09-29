@@ -11,8 +11,12 @@ import pytest
 # Ensure repository root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from config.schema import ChunkMetadata, Citation, QueryRequest
-from retrieval.retriever import VectorRetriever, DEFAULT_RELEVANCE_THRESHOLD, REFUSAL_MESSAGE
+from config.schema import ChunkMetadata, QueryRequest
+from retrieval.retriever import (
+    VectorRetriever,
+    DEFAULT_RELEVANCE_THRESHOLD,
+    REFUSAL_MESSAGE,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +40,10 @@ def test_default_relevance_threshold_value():
 
 def test_refusal_message_format():
     """Refusal message must include 'I don't know' or 'not covered' (FR-10)."""
-    assert "I don't know" in REFUSAL_MESSAGE or "not covered" in REFUSAL_MESSAGE
+    assert (
+        "I don't know" in REFUSAL_MESSAGE
+        or "not covered" in REFUSAL_MESSAGE
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -59,7 +66,9 @@ def test_retrieve_returns_chunk_metadata_and_score(retriever):
     """Each element in retrieve() result is a (ChunkMetadata, float) tuple."""
     results = retriever.retrieve("ARM assembly register values", top_k=2)
     assert len(results) >= 1
+
     meta, score = results[0]
+
     assert isinstance(meta, ChunkMetadata)
     assert isinstance(score, float)
     assert 0.0 <= score <= 1.0
@@ -67,37 +76,59 @@ def test_retrieve_returns_chunk_metadata_and_score(retriever):
 
 def test_retrieve_sorted_descending_by_similarity(retriever):
     """Results must be sorted by similarity score descending (highest relevance first)."""
-    results = retriever.retrieve("AI research assistant library university", top_k=5)
-    scores = [s for _, s in results]
-    assert scores == sorted(scores, reverse=True), "Results not sorted descending"
+    results = retriever.retrieve(
+        "AI research assistant library university",
+        top_k=5,
+    )
+
+    scores = [score for _, score in results]
+
+    assert scores == sorted(scores, reverse=True), (
+        "Results not sorted descending"
+    )
 
 
 def test_in_corpus_password_query_passes_threshold(retriever):
     """GT-01: password reuse query must retrieve relevant chunks above threshold."""
     results = retriever.retrieve(
-        "What percentage of participants reused passwords verbatim and why?", top_k=4
+        "What percentage of participants reused passwords verbatim and why?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert is_relevant, f"Expected relevant, got confidence={confidence:.3f}"
+
+    assert is_relevant, (
+        f"Expected relevant, got confidence={confidence:.3f}"
+    )
     assert confidence >= DEFAULT_RELEVANCE_THRESHOLD
 
 
 def test_in_corpus_spix_macaw_query_passes_threshold(retriever):
     """GT-03: Spix's macaw query must retrieve relevant chunks above threshold."""
     results = retriever.retrieve(
-        "When was the Spix's macaw declared extinct in the wild?", top_k=4
+        "When was the Spix's macaw declared extinct in the wild?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert is_relevant, f"Expected relevant, got confidence={confidence:.3f}"
+
+    assert is_relevant, (
+        f"Expected relevant, got confidence={confidence:.3f}"
+    )
 
 
 def test_in_corpus_arm_assembly_query_passes_threshold(retriever):
     """GT-05: CPUlator ARM trace query must retrieve relevant chunks."""
     results = retriever.retrieve(
-        "What are the final values in registers r6 and r7 after ARM program execution?", top_k=4
+        "What are the final values in registers r6 and r7 after ARM program execution?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert is_relevant, f"Expected relevant, got confidence={confidence:.3f}"
+
+    assert is_relevant, (
+        f"Expected relevant, got confidence={confidence:.3f}"
+    )
 
 
 def test_in_corpus_prd_query_passes_threshold(retriever):
@@ -107,8 +138,12 @@ def test_in_corpus_prd_query_passes_threshold(retriever):
         "and what are the target thresholds for retrieval recall and answer groundedness?",
         top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert is_relevant, f"Expected relevant, got confidence={confidence:.3f}"
+
+    assert is_relevant, (
+        f"Expected relevant, got confidence={confidence:.3f}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -118,28 +153,43 @@ def test_in_corpus_prd_query_passes_threshold(retriever):
 def test_out_of_corpus_shor_algorithm_is_refused(retriever):
     """GT-11: Shor's quantum algorithm is outside corpus — must fall below threshold."""
     results = retriever.retrieve(
-        "How does Shor's algorithm achieve polynomial time integer factorization?", top_k=4
+        "How does Shor's algorithm achieve polynomial time integer factorization?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert not is_relevant, f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+
+    assert not is_relevant, (
+        f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+    )
 
 
 def test_out_of_corpus_french_revolution_is_refused(retriever):
     """GT-12: French Revolution is outside corpus — must fall below threshold."""
     results = retriever.retrieve(
-        "What were the political consequences of the Storming of the Bastille?", top_k=4
+        "What were the political consequences of the Storming of the Bastille?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert not is_relevant, f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+
+    assert not is_relevant, (
+        f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+    )
 
 
 def test_out_of_corpus_crispr_is_refused(retriever):
     """GT-13: CRISPR/Cas9 PAM sequence is outside corpus — must fall below threshold."""
     results = retriever.retrieve(
-        "What is the PAM sequence required by Streptococcus pyogenes Cas9?", top_k=4
+        "What is the PAM sequence required by Streptococcus pyogenes Cas9?",
+        top_k=4,
     )
+
     is_relevant, confidence = retriever.evaluate_relevance(results)
-    assert not is_relevant, f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+
+    assert not is_relevant, (
+        f"Expected refusal, but got relevant with confidence={confidence:.3f}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -149,13 +199,13 @@ def test_out_of_corpus_crispr_is_refused(retriever):
 def test_evaluate_relevance_empty_list(retriever):
     """Empty retrieve result must return (False, 0.0)."""
     is_relevant, confidence = retriever.evaluate_relevance([])
+
     assert not is_relevant
     assert confidence == 0.0
 
 
 def test_evaluate_relevance_custom_threshold(retriever):
     """Custom threshold overrides default when passed explicitly."""
-    # Build a fake result with similarity 0.50
     dummy_meta = ChunkMetadata(
         chunk_id="test_p1_c001",
         doc_title="Test Doc",
@@ -167,12 +217,21 @@ def test_evaluate_relevance_custom_threshold(retriever):
         is_reference=False,
         token_count=100,
     )
+
     fake_results = [(dummy_meta, 0.50)]
-    # With threshold 0.60 → not relevant
-    is_rel_high, _ = retriever.evaluate_relevance(fake_results, threshold=0.60)
+
+    # With threshold 0.60, the result should not be relevant.
+    is_rel_high, _ = retriever.evaluate_relevance(
+        fake_results,
+        threshold=0.60,
+    )
     assert not is_rel_high
-    # With threshold 0.30 → relevant
-    is_rel_low, _ = retriever.evaluate_relevance(fake_results, threshold=0.30)
+
+    # With threshold 0.30, the result should be relevant.
+    is_rel_low, _ = retriever.evaluate_relevance(
+        fake_results,
+        threshold=0.30,
+    )
     assert is_rel_low
 
 
@@ -193,7 +252,7 @@ def test_get_citations_deduplication(retriever):
         is_reference=False,
         token_count=250,
     )
-    # Same doc/page/section, different chunk_id
+
     duplicate_meta = ChunkMetadata(
         chunk_id="doc01_p14_c002",
         doc_title="How Users Choose and Reuse Passwords",
@@ -205,7 +264,11 @@ def test_get_citations_deduplication(retriever):
         is_reference=False,
         token_count=300,
     )
-    citations = retriever.get_citations([(dummy_meta, 0.8), (duplicate_meta, 0.7)])
+
+    citations = retriever.get_citations(
+        [(dummy_meta, 0.8), (duplicate_meta, 0.7)]
+    )
+
     assert len(citations) == 1
     assert citations[0].doc_title == "How Users Choose and Reuse Passwords"
     assert citations[0].page_number == 14
@@ -224,6 +287,7 @@ def test_get_citations_multiple_unique_sources(retriever):
         is_reference=False,
         token_count=200,
     )
+
     meta2 = ChunkMetadata(
         chunk_id="doc02_p1_c001",
         doc_title="Doc Two",
@@ -235,9 +299,15 @@ def test_get_citations_multiple_unique_sources(retriever):
         is_reference=False,
         token_count=150,
     )
-    citations = retriever.get_citations([(meta1, 0.8), (meta2, 0.6)])
+
+    citations = retriever.get_citations(
+        [(meta1, 0.8), (meta2, 0.6)]
+    )
+
     assert len(citations) == 2
-    titles = {c.doc_title for c in citations}
+
+    titles = {citation.doc_title for citation in citations}
+
     assert "Doc One" in titles
     assert "Doc Two" in titles
 
@@ -248,8 +318,12 @@ def test_get_citations_multiple_unique_sources(retriever):
 
 def test_query_in_corpus_returns_answer_and_citations(retriever):
     """In-corpus query must return refused=False with at least one citation."""
-    request = QueryRequest(query="What percentage of participants reused passwords verbatim?")
+    request = QueryRequest(
+        query="What percentage of participants reused passwords verbatim?"
+    )
+
     response = retriever.query(request)
+
     assert not response.refused
     assert len(response.citations) >= 1
     assert response.confidence_score is not None
@@ -258,50 +332,92 @@ def test_query_in_corpus_returns_answer_and_citations(retriever):
 
 def test_query_out_of_corpus_triggers_refusal(retriever):
     """Out-of-corpus query must return refused=True with 0 citations."""
-    request = QueryRequest(query="How does Shor's quantum algorithm factorize integers?")
+    request = QueryRequest(
+        query="How does Shor's quantum algorithm factorize integers?"
+    )
+
     response = retriever.query(request)
+
     assert response.refused is True
     assert len(response.citations) == 0
-    assert "I don't know" in response.answer or "not covered" in response.answer
+    assert (
+        "I don't know" in response.answer
+        or "not covered" in response.answer
+    )
 
 
 def test_query_response_confidence_is_float_in_range(retriever):
     """confidence_score in QueryResponse must be a float in [0, 1]."""
-    request = QueryRequest(query="Spix macaw reintroduction habitat Brazil")
+    request = QueryRequest(
+        query="Spix macaw reintroduction habitat Brazil"
+    )
+
     response = retriever.query(request)
+
     assert response.confidence_score is not None
     assert 0.0 <= response.confidence_score <= 1.0
 
 
 # ---------------------------------------------------------------------------
-# FastAPI integration — /query now uses real retriever
+# FastAPI integration — /query uses real retrieval and mocked generation
 # ---------------------------------------------------------------------------
 
-def test_api_query_endpoint_in_corpus():
-    """POST /query with in-corpus question must return 200 with citations via real retriever."""
+def test_api_query_endpoint_in_corpus(monkeypatch):
+    """
+    POST /query with an in-corpus question must return 200 with citations.
+
+    Gemini is mocked to keep this test independent of external API availability.
+    """
+
     from fastapi.testclient import TestClient
     from backend.main import app
 
+    class FakeGenerator:
+        def generate_answer(self, question, context):
+            return (
+                "The document contains information about "
+                "participants reusing passwords verbatim."
+            )
+
+    monkeypatch.setattr(
+        "backend.main.get_generator",
+        lambda: FakeGenerator(),
+    )
+
     client = TestClient(app)
-    payload = {"query": "What percentage of participants reused passwords verbatim?"}
+    payload = {
+        "query": "What percentage of participants reused passwords verbatim?"
+    }
+
     response = client.post("/query", json=payload)
+
     assert response.status_code == 200
+
     data = response.json()
+
     assert data["refused"] is False
+    assert data["answer"]
     assert len(data["citations"]) >= 1
+    assert data["confidence_score"] is not None
     assert data["confidence_score"] >= DEFAULT_RELEVANCE_THRESHOLD
 
 
 def test_api_query_endpoint_out_of_corpus():
-    """POST /query with out-of-corpus question must return refused=True via real retriever."""
+    """POST /query with an out-of-corpus question must return refused=True."""
     from fastapi.testclient import TestClient
     from backend.main import app
 
     client = TestClient(app)
-    payload = {"query": "How does the French Revolution relate to quantum computing?"}
+    payload = {
+        "query": "How does the French Revolution relate to quantum computing?"
+    }
+
     response = client.post("/query", json=payload)
+
     assert response.status_code == 200
+
     data = response.json()
+
     assert data["refused"] is True
     assert data["citations"] == []
 
@@ -312,7 +428,8 @@ def test_api_health_version():
     from backend.main import app
 
     client = TestClient(app)
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json()["version"] == "2.0.0"
-    assert resp.json()["stage"] == "Day 6 - Real Retrieval"
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json()["version"] == "2.0.0"
+    assert response.json()["stage"] == "Day 6 - Real Retrieval"

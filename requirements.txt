@@ -12,3 +12,4 @@ streamlit
 requests
 langchain-text-splitters
 openai
+google-genai
