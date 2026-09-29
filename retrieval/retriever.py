@@ -1,16 +1,21 @@
+
 """
 LibraAI - Semantic Retrieval & Relevance Thresholding Module
-Day 7 Upgrade: Retrieval with Text for LLM Generation
+Day 8: Multi-topic retrieval with source evidence
 """
 
-import os
-import sys
 import logging
+import os
+import re
+import sys
 from typing import Optional, List, Dict, Any, Tuple
 
 import chromadb
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+)
 
 from config.schema import ChunkMetadata, Citation, QueryRequest, QueryResponse
 from indexing.indexer import (
@@ -30,7 +35,14 @@ REFUSAL_MESSAGE = "I don't know / not covered in the available materials."
 class VectorRetriever:
     """
     Semantic search engine over the indexed LibraAI ChromaDB corpus.
-    Supports retrieval, filtering, relevance thresholding, and citations.
+
+    Supports:
+    - Semantic retrieval
+    - Metadata filtering
+    - Relevance thresholding
+    - Multi-topic retrieval
+    - Deduplication
+    - Source citations
     """
 
     def __init__(
@@ -46,7 +58,9 @@ class VectorRetriever:
         self.embedding_fn = embedding_fn or get_embedding_function()
         self.client = get_chroma_client(persist_dir)
         self.collection = get_or_create_collection(
-            self.client, collection_name, self.embedding_fn
+            self.client,
+            collection_name,
+            self.embedding_fn,
         )
 
     def _build_filter(
@@ -59,15 +73,19 @@ class VectorRetriever:
 
         if exclude_references:
             filters.append({"is_reference": False})
+
         if course_code:
             filters.append({"course_code": course_code})
+
         if doc_type:
             filters.append({"doc_type": doc_type})
 
         if len(filters) == 1:
             return filters[0]
+
         if len(filters) > 1:
             return {"$and": filters}
+
         return None
 
     def _query_collection(
@@ -79,7 +97,9 @@ class VectorRetriever:
         exclude_references: bool,
     ) -> Dict[str, Any]:
         where_clause = self._build_filter(
-            course_code, doc_type, exclude_references
+            course_code,
+            doc_type,
+            exclude_references,
         )
 
         query_kwargs: Dict[str, Any] = {
@@ -92,6 +112,23 @@ class VectorRetriever:
 
         return self.collection.query(**query_kwargs)
 
+    @staticmethod
+    def _chunk_key(
+        text: str,
+        metadata: ChunkMetadata,
+    ) -> tuple:
+        """Create a stable key for deduplicating retrieved chunks."""
+        if metadata.chunk_id:
+            return ("chunk_id", metadata.chunk_id)
+
+        return (
+            "content",
+            metadata.doc_title,
+            metadata.page_number,
+            metadata.section,
+            text,
+        )
+
     def retrieve(
         self,
         query: str,
@@ -102,23 +139,39 @@ class VectorRetriever:
     ) -> List[Tuple[ChunkMetadata, float]]:
         """
         Retrieve chunks as (ChunkMetadata, similarity_score) tuples.
-        This return format is preserved for backward compatibility.
+        This format is preserved for backward compatibility.
         """
         try:
             results = self._query_collection(
-                query, top_k, course_code, doc_type, exclude_references
+                query,
+                top_k,
+                course_code,
+                doc_type,
+                exclude_references,
             )
-        except Exception as e:
-            logger.error("Error executing Chroma query: %s", e)
+        except Exception:
+            logger.exception("Error executing Chroma query")
             return []
 
         retrieved = []
 
-        if not results or not results.get("documents") or not results["documents"][0]:
+        if (
+            not results
+            or not results.get("documents")
+            or not results["documents"][0]
+        ):
             return retrieved
 
-        metadatas = results["metadatas"][0] if results.get("metadatas") else []
-        distances = results["distances"][0] if results.get("distances") else []
+        metadatas = (
+            results["metadatas"][0]
+            if results.get("metadatas")
+            else []
+        )
+        distances = (
+            results["distances"][0]
+            if results.get("distances")
+            else []
+        )
 
         for i, _ in enumerate(results["documents"][0]):
             meta_dict = metadatas[i] if i < len(metadatas) else {}
@@ -126,9 +179,10 @@ class VectorRetriever:
 
             similarity = max(0.0, min(1.0, 1.0 - dist))
             chunk_meta = ChunkMetadata.from_chroma_metadata(meta_dict)
+
             retrieved.append((chunk_meta, similarity))
 
-        retrieved.sort(key=lambda x: x[1], reverse=True)
+        retrieved.sort(key=lambda item: item[1], reverse=True)
         return retrieved
 
     def retrieve_with_text(
@@ -145,31 +199,97 @@ class VectorRetriever:
         """
         try:
             results = self._query_collection(
-                query, top_k, course_code, doc_type, exclude_references
+                query,
+                top_k,
+                course_code,
+                doc_type,
+                exclude_references,
             )
-        except Exception as e:
-            logger.error("Error executing Chroma query: %s", e)
+        except Exception:
+            logger.exception("Error executing Chroma query")
             return []
 
         retrieved = []
 
-        if not results or not results.get("documents") or not results["documents"][0]:
+        if (
+            not results
+            or not results.get("documents")
+            or not results["documents"][0]
+        ):
             return retrieved
 
         documents = results["documents"][0]
-        metadatas = results["metadatas"][0] if results.get("metadatas") else []
-        distances = results["distances"][0] if results.get("distances") else []
+        metadatas = (
+            results["metadatas"][0]
+            if results.get("metadatas")
+            else []
+        )
+        distances = (
+            results["distances"][0]
+            if results.get("distances")
+            else []
+        )
 
-        for i, text in enumerate(documents):
+        for i, chunk_text in enumerate(documents):
             meta_dict = metadatas[i] if i < len(metadatas) else {}
             dist = distances[i] if i < len(distances) else 1.0
 
             similarity = max(0.0, min(1.0, 1.0 - dist))
             chunk_meta = ChunkMetadata.from_chroma_metadata(meta_dict)
-            retrieved.append((text, chunk_meta, similarity))
 
-        retrieved.sort(key=lambda x: x[2], reverse=True)
+            retrieved.append((chunk_text, chunk_meta, similarity))
+
+        retrieved.sort(key=lambda item: item[2], reverse=True)
         return retrieved
+
+    def retrieve_for_topics(
+        self,
+        topics: List[str],
+        top_k: int = 4,
+        course_code: Optional[str] = None,
+        doc_type: Optional[str] = None,
+        exclude_references: bool = True,
+    ) -> List[Tuple[str, ChunkMetadata, float]]:
+        """
+        Search each topic independently, then merge and deduplicate
+        the retrieved chunks.
+
+        Each topic gets its own top_k retrieval allowance.
+        """
+        merged = []
+        seen_chunks = set()
+
+        for topic in topics:
+            topic = topic.strip()
+
+            if not topic:
+                continue
+
+            topic_results = self.retrieve_with_text(
+                query=topic,
+                top_k=top_k,
+                course_code=course_code,
+                doc_type=doc_type,
+                exclude_references=exclude_references,
+            )
+
+            logger.info(
+                "Retrieved %d chunks for topic: %s",
+                len(topic_results),
+                topic[:100],
+            )
+
+            for chunk_text, metadata, score in topic_results:
+                key = self._chunk_key(chunk_text, metadata)
+
+                if key in seen_chunks:
+                    continue
+
+                seen_chunks.add(key)
+                merged.append((chunk_text, metadata, score))
+
+        merged.sort(key=lambda item: item[2], reverse=True)
+        return merged
 
     def evaluate_relevance(
         self,
@@ -177,7 +297,11 @@ class VectorRetriever:
         threshold: Optional[float] = None,
     ) -> Tuple[bool, float]:
         """Return (is_relevant, confidence_score)."""
-        thresh = threshold if threshold is not None else self.relevance_threshold
+        thresh = (
+            threshold
+            if threshold is not None
+            else self.relevance_threshold
+        )
 
         if not retrieved:
             return False, 0.0
@@ -189,7 +313,7 @@ class VectorRetriever:
         self,
         retrieved: List[Tuple[ChunkMetadata, float]],
     ) -> List[Citation]:
-        """Build deduplicated citations exclusively from stored metadata."""
+        """Build deduplicated citations from stored metadata."""
         citations = []
         seen = set()
 
@@ -199,10 +323,12 @@ class VectorRetriever:
                 chunk_meta.page_number,
                 chunk_meta.section,
             )
+
             if key in seen:
                 continue
 
             seen.add(key)
+
             citations.append(
                 Citation(
                     doc_title=chunk_meta.doc_title,
@@ -217,8 +343,7 @@ class VectorRetriever:
 
     def query(self, request: QueryRequest) -> QueryResponse:
         """
-        Day 6 retrieval workflow.
-        Day 7 generation will be connected in the backend.
+        Day 6 retrieval workflow retained for backward compatibility.
         """
         retrieved = self.retrieve(
             query=request.query,
@@ -236,6 +361,7 @@ class VectorRetriever:
                 self.relevance_threshold,
                 request.query[:50],
             )
+
             return QueryResponse(
                 answer=REFUSAL_MESSAGE,
                 citations=[],
