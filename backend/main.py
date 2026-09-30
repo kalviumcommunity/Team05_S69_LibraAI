@@ -9,7 +9,6 @@ import logging
 import os
 import re
 import sys
-import os
 
 # Add repository root to python sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -19,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import APIConnectionError, APIStatusError, APITimeoutError
 
 from config.schema import Citation, QueryRequest, QueryResponse
+from config.settings import BACKEND_HOST, BACKEND_PORT
 from generation.llm import NVIDIAGenerator, REFUSAL_MESSAGE
 from retrieval.retriever import VectorRetriever
 
@@ -310,11 +310,4 @@ async def query_library(request: QueryRequest) -> QueryResponse:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
-
-    uvicorn.run(
-        "backend.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-    )   
+    uvicorn.run("backend.main:app", host=BACKEND_HOST, port=BACKEND_PORT, reload=True)

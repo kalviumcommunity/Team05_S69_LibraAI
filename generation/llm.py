@@ -4,6 +4,15 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from config.settings import (
+    NVIDIA_DEFAULT_MODEL,
+    NVIDIA_API_BASE,
+    LLM_TEMPERATURE,
+    LLM_MAX_TOKENS,
+    LLM_TIMEOUT_SECONDS,
+    LLM_MAX_RETRIES,
+)
+
 load_dotenv()
 
 REFUSAL_MESSAGE = "I don't know / not covered in the available materials."
@@ -18,16 +27,13 @@ class NVIDIAGenerator:
                 "NVIDIA_API_KEY is missing from the .env file"
             )
 
-        self.model = os.getenv(
-            "NVIDIA_MODEL",
-            "meta/llama-3.3-70b-instruct",
-        )
+        self.model = os.getenv("NVIDIA_MODEL", NVIDIA_DEFAULT_MODEL)
 
         self.client = OpenAI(
-            base_url="https://integrate.api.nvidia.com/v1",
+            base_url=NVIDIA_API_BASE,
             api_key=api_key,
-            timeout=60.0,
-            max_retries=2,
+            timeout=LLM_TIMEOUT_SECONDS,
+            max_retries=LLM_MAX_RETRIES,
         )
 
     def generate_answer(self, question: str, context: str) -> str:
@@ -75,8 +81,8 @@ Question:
                     "content": user_prompt,
                 },
             ],
-            temperature=0.2,
-            max_tokens=1024,
+            temperature=LLM_TEMPERATURE,
+            max_tokens=LLM_MAX_TOKENS,
         )
 
         answer = response.choices[0].message.content
