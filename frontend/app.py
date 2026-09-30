@@ -1,9 +1,13 @@
 
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import requests
 import streamlit as st
 
+from config.settings import QUERY_ENDPOINT
 
-API_URL = "http://localhost:8000/query"
+API_URL = QUERY_ENDPOINT
 
 
 st.set_page_config(

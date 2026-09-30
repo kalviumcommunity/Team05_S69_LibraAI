@@ -1,0 +1,57 @@
+{
+  "target_seconds": 10.0,
+  "avg_latency_s": 0.122,
+  "pass_rate": "5/5",
+  "results": [
+    {
+      "id": "LT-01",
+      "question": "What percentage of participants reused some password verbatim?",
+      "latency_s": 0.453,
+      "within_target": true,
+      "refused": false,
+      "confidence": 0.7421,
+      "expected": "in-corpus",
+      "status": "PASS"
+    },
+    {
+      "id": "LT-02",
+      "question": "In what year was the Spix's macaw declared extinct in the wild?",
+      "latency_s": 0.041,
+      "within_target": true,
+      "refused": false,
+      "confidence": 0.7376,
+      "expected": "in-corpus",
+      "status": "PASS"
+    },
+    {
+      "id": "LT-03",
+      "question": "What are the final decimal values of registers r6 and r7?",
+      "latency_s": 0.043,
+      "within_target": true,
+      "refused": false,
+      "confidence": 0.5801,
+      "expected": "in-corpus",
+      "status": "PASS"
+    },
+    {
+      "id": "LT-04",
+      "question": "What is the maximum end-to-end query latency target for LibraAI?",
+      "latency_s": 0.037,
+      "within_target": true,
+      "refused": true,
+      "confidence": 0.3305,
+      "expected": "in-corpus",
+      "status": "PASS"
+    },
+    {
+      "id": "LT-05",
+      "question": "How does Shor's algorithm achieve polynomial-time factorization?",
+      "latency_s": 0.038,
+      "within_target": true,
+      "refused": true,
+      "confidence": 0.2611,
+      "expected": "out-of-corpus (refusal)",
+      "status": "PASS"
+    }
+  ]
+}
