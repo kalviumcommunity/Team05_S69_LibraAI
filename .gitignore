@@ -5,3 +5,5 @@ data/chroma_db/
 data/chunks/
 data/cleaned/
 data/processed/
+.env
+

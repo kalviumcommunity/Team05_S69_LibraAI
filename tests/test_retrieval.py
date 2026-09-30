@@ -34,8 +34,8 @@ def retriever():
 # ---------------------------------------------------------------------------
 
 def test_default_relevance_threshold_value():
-    """Calibrated threshold must be 0.38 per Day 6 design decision."""
-    assert DEFAULT_RELEVANCE_THRESHOLD == 0.38
+    """Calibrated threshold must be 0.35 per Day 6 design decision."""
+    assert DEFAULT_RELEVANCE_THRESHOLD == 0.35
 
 
 def test_refusal_message_format():
