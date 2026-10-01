@@ -87,28 +87,44 @@ HF_TOKEN=your_huggingface_token_here     # Optional for Hugging Face Inference A
 ```
 *(If no keys are provided, the system defaults automatically to offline extractive mode.)*
 
-### 3. Run the Day 9 Benchmark Evaluation
+### 3. Launch the Streamlit Web Application (Day 10 UI)
 
-Execute the evaluation harness across the 13 ground-truth test cases:
+Launch the interactive web assistant with expandable citations, filters, and 1-click viva preset queries:
+
+```bash
+streamlit run frontend/app.py
+```
+
+### 4. Run the Live Viva Demonstration Runner
+
+Execute the automated multi-scenario viva demonstration:
+
+```bash
+python demo.py
+```
+
+### 5. Run the Day 9 Benchmark Evaluation
+
+Execute the evaluation harness across all 13 ground-truth test cases:
 
 ```bash
 python eval/day9_evaluator.py --provider offline
 ```
 
-### 4. Run the Test Suite
+### 6. Run the Full Test Suite
 
-Run all 77 automated unit and integration tests:
+Run all 88 automated unit and integration tests:
 
 ```bash
 pytest
 ```
 
-### 5. Start the REST API
+### 7. Start the REST API
 
 Launch the FastAPI application:
 
 ```bash
-uvicorn api.main:app --reload --port 8000
+uvicorn backend.main:app --reload --port 8000
 ```
 
 - API Docs: `http://localhost:8000/docs`
@@ -117,11 +133,20 @@ uvicorn api.main:app --reload --port 8000
 
 ---
 
+## 🎓 Viva & Demo Resources
+
+- **Viva Preparation Guide:** See [`VIVA_PREPARATION.md`](VIVA_PREPARATION.md) for architectural justifications, technical defense Q&A, and a step-by-step 3-minute presentation script.
+- **Evaluation Report:** See [`eval/results_v2.md`](eval/results_v2.md) for per-query evaluation traces, confidence scores, and groundedness ratings.
+
+---
+
 ## 🧪 Testing Coverage
 
-The automated test suite (`tests/`) covers:
-- `tests/test_retrieval.py`: Vector retrieval, top-k ranking, metadata preservation, relevance thresholding, and refusal triggers.
+The automated test suite (`tests/`) covers **88 passing tests**:
+- `tests/test_day10_ui_and_demo.py`: Streamlit frontend query execution, benchmark query presets, scope filters, live demo runner, and viva documentation integrity.
 - `tests/test_day9_pipeline.py`: End-to-end full-pipeline integration, groundedness scoring heuristic, refusal guardrails, context attribution, and ground-truth dataset integrity.
+- `tests/test_retrieval.py`: Vector retrieval, top-k ranking, metadata preservation, relevance thresholding (0.35), and refusal triggers.
 - `tests/test_api.py`: FastAPI endpoint responses, request validation, and error handling.
 - `tests/test_citations.py`: Citation formatting, deduplication, and page alignment.
 - `tests/test_generation.py`: Generation prompts, fallback behaviors, and response schema adherence.
+

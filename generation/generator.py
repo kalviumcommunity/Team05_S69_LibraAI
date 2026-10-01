@@ -183,10 +183,8 @@ def generate_answer(
 
 class GroundedGenerator:
     """
-    End-to-end RAG pipeline: Retrieval → Relevance Check → Grounded Generation → Citations.
-
-    Wraps the VectorRetriever and LLM generation into a single query() method
-    that returns a fully formed QueryResponse.
+    End-to-end RAG pipeline:
+    Retrieval → Relevance Check → Grounded Generation → Citations.
     """
 
     def __init__(
@@ -198,14 +196,9 @@ class GroundedGenerator:
         self.provider = provider
 
     def query(self, request: QueryRequest) -> QueryResponse:
-        """
-        Full RAG pipeline:
-        1. Retrieve top-k chunks from ChromaDB.
-        2. Evaluate relevance threshold.
-        3. If below threshold → refuse with 0 citations.
-        4. If above threshold → generate grounded answer with LLM + citations.
-        """
-        # Step 1: Retrieve
+        """Retrieve evidence, generate an answer, and return citations."""
+
+        # Step 1: Retrieve relevant chunks
         retrieved = self.retriever.retrieve(
             query=request.query,
             top_k=request.top_k,
@@ -213,12 +206,14 @@ class GroundedGenerator:
             doc_type=request.doc_type,
         )
 
-        # Step 2: Relevance check
+        # Step 2: Check relevance
         is_relevant, confidence = self.retriever.evaluate_relevance(retrieved)
 
         if not is_relevant:
             logger.info(
-                f"Query refused (confidence {confidence:.3f}): {request.query[:60]}"
+                "Query refused (confidence %.3f): %s",
+                confidence,
+                request.query[:60],
             )
             return QueryResponse(
                 answer=REFUSAL_MESSAGE,
@@ -227,24 +222,32 @@ class GroundedGenerator:
                 confidence_score=round(confidence, 4),
             )
 
-        # Step 3: Get chunk texts for LLM context
-        # We need to re-query ChromaDB to get the actual text content
+        # Step 3: Retrieve the actual text for each chunk
         collection = self.retriever.collection
         chunk_ids = [meta.chunk_id for meta, _ in retrieved]
 
         try:
-            results = collection.get(ids=chunk_ids, include=["documents"])
-            # Map id → text for correct ordering
+            results = collection.get(
+                ids=chunk_ids,
+                include=["documents"],
+            )
+
             id_to_text = {}
-            if results and results["ids"]:
-                for cid, doc in zip(results["ids"], results["documents"]):
-                    id_to_text[cid] = doc
-            chunk_texts = [id_to_text.get(cid, "") for cid in chunk_ids]
+            if results and results.get("ids"):
+                documents = results.get("documents") or []
+                for chunk_id, document in zip(results["ids"], documents):
+                    id_to_text[chunk_id] = document or ""
+
+            chunk_texts = [
+                id_to_text.get(chunk_id, "")
+                for chunk_id in chunk_ids
+            ]
+
         except Exception as e:
-            logger.error(f"Failed to retrieve chunk texts: {e}")
+            logger.error("Failed to retrieve chunk texts: %s", e)
             chunk_texts = ["" for _ in retrieved]
 
-        # Step 4: Generate grounded answer
+        # Step 4: Generate the grounded answer
         answer = generate_answer(
             question=request.query,
             retrieved=retrieved,
@@ -252,12 +255,31 @@ class GroundedGenerator:
             provider=self.provider,
         )
 
-        # Step 5: Build citations from metadata
-        citations = self.retriever.get_citations(retrieved)
+        # Step 5: Build citations with actual source text
+        citations = []
+
+        for (meta, _), chunk_text in zip(retrieved, chunk_texts):
+            citations.append(
+                Citation(
+                    doc_title=meta.doc_title,
+                    section=meta.section,
+                    page_number=meta.page_number,
+                    source_path=meta.source_path,
+                    chunk_id=meta.chunk_id,
+                    chunk_text=chunk_text,
+                )
+            )
+
+        # Step 6: Return the answer and citations
+        document_count = len({
+            citation.doc_title for citation in citations
+        })
 
         return QueryResponse(
             answer=answer,
             citations=citations,
             refused=False,
             confidence_score=round(confidence, 4),
+            source_document_count=document_count,
         )
+    
