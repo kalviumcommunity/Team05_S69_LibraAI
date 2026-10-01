@@ -11,11 +11,16 @@ from typing import Optional, List, Dict, Any, Tuple
 import chromadb
 from chromadb.utils import embedding_functions
 
-# Ensure root directory is on sys.path
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from config.schema import ChunkMetadata
+from config.settings import (
+    CHROMA_DIR as _DEFAULT_CHROMA_DIR,
+    CHROMA_COLLECTION_NAME as _DEFAULT_COLLECTION_NAME,
+    INDEX_BATCH_SIZE as _DEFAULT_BATCH_SIZE,
+    OPENAI_EMBEDDING_MODEL,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -24,8 +29,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("libraai.indexer")
 
-DEFAULT_CHROMA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "chroma_db"))
-DEFAULT_COLLECTION_NAME = "libra_ai_corpus"
+DEFAULT_CHROMA_DIR       = str(_DEFAULT_CHROMA_DIR)
+DEFAULT_COLLECTION_NAME  = _DEFAULT_COLLECTION_NAME
 
 
 def get_embedding_function(api_key: Optional[str] = None):
@@ -39,7 +44,7 @@ def get_embedding_function(api_key: Optional[str] = None):
         logger.info("Using OpenAI text-embedding-3-small embedding function.")
         return embedding_functions.OpenAIEmbeddingFunction(
             api_key=key,
-            model_name="text-embedding-3-small"
+            model_name=OPENAI_EMBEDDING_MODEL
         )
     else:
         logger.info("Using ChromaDB local DefaultEmbeddingFunction (all-MiniLM-L6-v2).")
@@ -128,7 +133,7 @@ def index_corpus(
     chunks_dir: Optional[str] = None,
     persist_dir: str = DEFAULT_CHROMA_DIR,
     collection_name: str = DEFAULT_COLLECTION_NAME,
-    batch_size: int = 50,
+    batch_size: int = _DEFAULT_BATCH_SIZE,
 ) -> int:
     """
     Index all chunks from chunks_dir into ChromaDB.
